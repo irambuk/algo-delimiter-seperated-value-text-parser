@@ -46,7 +46,6 @@ namespace DelimitedSeperatedValueTextParsers
 
         private void ParseBuffer()
         {
-
             while (_parserBuffer.Count > 0)
             {
                 var c = _parserBuffer.Dequeue();
@@ -60,29 +59,26 @@ namespace DelimitedSeperatedValueTextParsers
                     case ParserStates.LineEnded:
                         if (isColumnDelimiter)
                         {
-                            _currentDataItem.Add(string.Empty); //no text found for the first column
+                            OnColumnFound();
                         }
                         else
                         {
                             _currentDataText.Append(c);
                         }
-                        _parserState = ParserStates.ColumnStarted;
+                        _parserState = ParserStates.ColumnEnded;
                         break;
                     case ParserStates.LineStarted:
                     case ParserStates.ColumnStarted:
                     case ParserStates.ColumnEnded:
                         if (isLineDelimiter)
                         {
-                            _currentDataItem.Add(_currentDataText.ToString());
-                            _currentDataText.Clear();
-                            _currentDataList.Add(new List<string>(_currentDataItem));
-                            _currentDataItem.Clear();
+                            OnColumnFound();
+                            OnLineFound();
                             _parserState = ParserStates.LineEnded;
                         }
                         else if (isColumnDelimiter)
                         {
-                            _currentDataItem.Add(_currentDataText.ToString());
-                            _currentDataText.Clear();
+                            OnColumnFound();
                             _parserState = ParserStates.ColumnEnded;
                         }
                         else
@@ -95,6 +91,20 @@ namespace DelimitedSeperatedValueTextParsers
                         break;
                 }
             }
+        }
+
+        private void OnColumnFound()
+        {
+            _currentDataItem.Add(_currentDataText.ToString());
+            _currentDataText.Clear();
+            _currentColumnNumber++;
+        }
+
+        private void OnLineFound()
+        {
+            _currentDataList.Add(new List<string>(_currentDataItem));
+            _currentDataItem.Clear();
+            _currentColumnNumber = 0;
         }
     }
 }
