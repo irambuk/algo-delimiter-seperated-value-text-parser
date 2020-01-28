@@ -13,7 +13,7 @@ namespace DelimitedSeperatedValueTextParsers.Tests
 
             var linesFound = new List<List<string>>();
 
-            parser.SimpleTextLineFound += (sender, eventArgs) => { linesFound.Add(eventArgs.TextFields); };
+            parser.TextLineParsed += (sender, eventArgs) => { linesFound.Add(eventArgs.Line); };
 
             parser.Read("a,b,c,d\n1,2,3,4\n");
             parser.Read("p,q,r,s\n");
