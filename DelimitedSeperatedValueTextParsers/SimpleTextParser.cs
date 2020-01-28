@@ -1,21 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace DelimitedSeperatedValueTextParsers
 {
     public class SimpleTextParser
     {
+        public delegate void SimpleTextLineFoundEventHandler(object sender, SimpleTextLineFoundEventArgs args);
+        public event SimpleTextLineFoundEventHandler SimpleTextLineFound;
+
         private readonly ParserConfigurations _parserConfigurations;
-        //private readonly ColumnPropertyInfo[] _properties;
         private readonly Queue<char> _parserBuffer = new Queue<char>();
 
         private ParserStates _parserState = ParserStates.NotStarted;
-
-        private readonly List<List<string>> _currentDataList = new List<List<string>>();
         private readonly List<string> _currentDataItem = new List<string>();
         private readonly StringBuilder _currentDataText = new StringBuilder();
-        private int _currentColumnNumber;
 
         public SimpleTextParser(ParserConfigurations parserConfigurations)
         {
@@ -37,13 +35,6 @@ namespace DelimitedSeperatedValueTextParsers
             ParseBuffer();
         }
 
-        public string[][] GetData()
-        {
-            var data = _currentDataList.Select(s => s.ToArray()).ToArray();
-            _currentDataList.Clear();
-            return data;
-        }
-
         private void ParseBuffer()
         {
             while (_parserBuffer.Count > 0)
@@ -60,12 +51,13 @@ namespace DelimitedSeperatedValueTextParsers
                         if (isColumnDelimiter)
                         {
                             OnColumnFound();
+                            _parserState = ParserStates.ColumnEnded;
                         }
                         else
                         {
                             _currentDataText.Append(c);
+                            _parserState = ParserStates.ColumnStarted;
                         }
-                        _parserState = ParserStates.ColumnEnded;
                         break;
                     case ParserStates.LineStarted:
                     case ParserStates.ColumnStarted:
@@ -97,14 +89,14 @@ namespace DelimitedSeperatedValueTextParsers
         {
             _currentDataItem.Add(_currentDataText.ToString());
             _currentDataText.Clear();
-            _currentColumnNumber++;
         }
 
         private void OnLineFound()
         {
-            _currentDataList.Add(new List<string>(_currentDataItem));
+            var data = new List<string>(_currentDataItem);
             _currentDataItem.Clear();
-            _currentColumnNumber = 0;
+
+            SimpleTextLineFound?.Invoke(this, new SimpleTextLineFoundEventArgs { TextFields = data });
         }
     }
 }

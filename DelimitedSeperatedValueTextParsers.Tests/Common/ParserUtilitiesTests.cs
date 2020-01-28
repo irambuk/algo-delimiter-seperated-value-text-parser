@@ -18,7 +18,9 @@ namespace DelimitedSeperatedValueTextParsers.Tests.Common
 
         private bool ArePropertiesEqual(ColumnPropertyInfo columnPropertyInfo, string name, string description, int order)
         {
-            return string.Equals(columnPropertyInfo.PropertyName, name) && string.Equals(columnPropertyInfo.DisplayName, description) && columnPropertyInfo.DisplayOrder == order;
+            return string.Equals(columnPropertyInfo.PropertyName, name, System.StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(columnPropertyInfo.DisplayName, description, System.StringComparison.OrdinalIgnoreCase) &&
+                columnPropertyInfo.DisplayOrder == order;
         }
 
         private class SampleData
